@@ -7951,13 +7951,33 @@ del {
             background: #000;
             padding: 70px 0;
         }
-        
-        .section-tittle h2 {
-            color: #fff;
-            font-size: 70px;
-            font-weight: 700;
-        }
-        
+
+        /* my code */
+       .section-tittle h2 {
+    color: #fff;
+    font-size: 70px;
+    font-weight: 700;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1024px) {
+    .section-tittle h2 {
+        font-size: 60px;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-tittle h2 {
+        font-size: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .section-tittle h2 {
+        font-size: 37px;
+    }
+}
+/* end my code */
         .form-contact .form-control {
             border: 1px solid #f0e9ff;
             background: rgba(255, 255, 255, 0.05);
