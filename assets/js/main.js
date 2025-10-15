@@ -211,3 +211,131 @@
   });
 
 })(jQuery);
+
+
+
+
+
+
+
+
+
+
+
+// conact form
+
+// document.getElementById('contactForm').addEventListener('submit', function(e) {
+//     e.preventDefault();
+    
+//     const form = this;
+//     const formData = new FormData(form);
+//     const submitBtn = form.querySelector('.submit-btn');
+//     const alertBox = document.getElementById('alertMessage');
+    
+//     // Disable submit button
+//     submitBtn.disabled = true;
+//     submitBtn.textContent = 'Sending...';
+    
+//     // Hide previous alerts
+//     alertBox.style.display = 'none';
+//     alertBox.className = 'alert-message';
+    
+//     // Send AJAX request
+//     fetch('contact-form-handler.php', {
+//         method: 'POST',
+//         body: formData
+//     })
+//     .then(response => response.json())
+//     .then(data => {
+//         // Show alert
+//         alertBox.style.display = 'block';
+//         alertBox.textContent = data.message;
+        
+//         if (data.success) {
+//             alertBox.classList.add('success');
+//             form.reset(); // Clear form
+//         } else {
+//             alertBox.classList.add('error');
+//         }
+        
+//         // Re-enable submit button
+//         submitBtn.disabled = false;
+//         submitBtn.textContent = 'Send Message';
+        
+//         // Auto-hide alert after 5 seconds
+//         setTimeout(() => {
+//             alertBox.style.display = 'none';
+//         }, 5000);
+//     })
+//     .catch(error => {
+//         console.error('Error:', error);
+//         alertBox.style.display = 'block';
+//         alertBox.classList.add('error');
+//         alertBox.textContent = 'An error occurred. Please try again.';
+        
+//         submitBtn.disabled = false;
+//         submitBtn.textContent = 'Send Message';
+//     });
+// });
+
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const formData = new FormData(form);
+    const submitBtn = form.querySelector('.submit-btn');
+    const alertBox = document.getElementById('alertMessage');
+    
+    // Disable submit button
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending...';
+    
+    // Hide previous alerts
+    alertBox.style.display = 'none';
+    alertBox.className = 'alert-message';
+    
+    // Send AJAX request to Formspree
+    fetch('https://formspree.io/f/mwpravgg', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => {
+        // Formspree success: 200 OK (no body)
+        if (response.ok) {
+            return { success: true, message: 'Thank you! Your message has been sent successfully.' };
+        }
+        // Error: Parse JSON for message
+        return response.json().then(data => {
+            throw new Error(data.message || 'An error occurred. Please try again.');
+        });
+    })
+    .then(data => {
+        // Show success alert
+        alertBox.style.display = 'block';
+        alertBox.textContent = data.message;
+        alertBox.classList.add('success');
+        form.reset(); // Clear form
+        
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Message';
+        
+        // Auto-hide alert after 5 seconds
+        setTimeout(() => {
+            alertBox.style.display = 'none';
+        }, 5000);
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alertBox.style.display = 'block';
+        alertBox.classList.add('error');
+        alertBox.textContent = error.message || 'An error occurred. Please try again.';
+        
+        // Re-enable submit button
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Send Message';
+    });
+});

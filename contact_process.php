@@ -1,37 +1,105 @@
 <?php
+header('Content-Type: application/json');
 
-    $to = "rockybd1995@gmail.com";
-    $from = $_REQUEST['email'];
-    $name = $_REQUEST['name'];
-    $subject = $_REQUEST['subject'];
-    $number = $_REQUEST['number'];
-    $cmessage = $_REQUEST['message'];
+// Include PHPMailer classes with your custom path
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
+use PHPMailer\PHPMailer\Exception;
 
-    $headers = "From: $from";
-	$headers = "From: " . $from . "\r\n";
-	$headers .= "Reply-To: ". $from . "\r\n";
-	$headers .= "MIME-Version: 1.0\r\n";
-	$headers .= "Content-Type: text/html; charset=ISO-8859-1\r\n";
+require 'assets/PHPMailer/src/Exception.php';
+require 'assets/PHPMailer/src/PHPMailer.php';
+require 'assets/PHPMailer/src/SMTP.php';
 
-    $subject = "You have a message from your Bitmap Photography.";
+// Function to sanitize input
+function sanitize($data) {
+    return htmlspecialchars(strip_tags(trim($data)));
+}
 
-    $logo = 'img/logo.png';
-    $link = '#';
+// Function to validate email
+function isValidEmail($email) {
+    return filter_var($email, FILTER_VALIDATE_EMAIL);
+}
 
-	$body = "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><title>Express Mail</title></head><body>";
-	$body .= "<table style='width: 100%;'>";
-	$body .= "<thead style='text-align: center;'><tr><td style='border:none;' colspan='2'>";
-	$body .= "<a href='{$link}'><img src='{$logo}' alt=''></a><br><br>";
-	$body .= "</td></tr></thead><tbody><tr>";
-	$body .= "<td style='border:none;'><strong>Name:</strong> {$name}</td>";
-	$body .= "<td style='border:none;'><strong>Email:</strong> {$from}</td>";
-	$body .= "</tr>";
-	$body .= "<tr><td style='border:none;'><strong>Subject:</strong> {$csubject}</td></tr>";
-	$body .= "<tr><td></td></tr>";
-	$body .= "<tr><td colspan='2' style='border:none;'>{$cmessage}</td></tr>";
-	$body .= "</tbody></table>";
-	$body .= "</body></html>";
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Get form data
+    $name = sanitize($_POST['name'] ?? '');
+    $email = sanitize($_POST['email'] ?? '');
+    $subject = sanitize($_POST['subject'] ?? '');
+    $message = sanitize($_POST['message'] ?? '');
 
-    $send = mail($to, $subject, $body, $headers);
+    // Basic validation
+    $errors = [];
+    if (empty($name)) {
+        $errors[] = 'Name is required.';
+    }
+    if (empty($email) || !isValidEmail($email)) {
+        $errors[] = 'Valid email is required.';
+    }
+    if (empty($subject)) {
+        $errors[] = 'Subject is required.';
+    }
+    if (empty($message)) {
+        $errors[] = 'Message is required.';
+    }
 
+    if (!empty($errors)) {
+        echo json_encode([
+            'success' => false,
+            'message' => implode(' ', $errors)
+        ]);
+        exit;
+    }
+
+    // Create PHPMailer instance
+    $mail = new PHPMailer(true);
+
+    try {
+        // Server settings
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com';  // Gmail SMTP server
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'sunandtwork@gmail.com';  // Your Gmail address
+        $mail->Password   = 'mqjt sdez vmne tked';     // Your App Password (not regular password)
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;  // TCP port (or 465 for SSL)
+
+        // Recipients
+        $mail->setFrom('sunandtwork@gmail.com', 'Website Contact Form');  // Sender (your Gmail)
+        $mail->addAddress('sunandtwork@gmail.com', 'Website Owner');      // Recipient (your Gmail)
+        $mail->addReplyTo($email, $name);  // Reply-to (user's email)
+
+        // Content
+        $mail->isHTML(true);
+        $mail->Subject = $subject;
+        $mail->Body    = "
+            <html>
+            <body>
+                <h2>New Contact Form Submission</h2>
+                <p><strong>Name:</strong> $name</p>
+                <p><strong>Email:</strong> $email</p>
+                <p><strong>Subject:</strong> $subject</p>
+                <p><strong>Message:</strong></p>
+                <p>$message</p>
+            </body>
+            </html>
+        ";
+        $mail->AltBody = "New Contact Form Submission\n\nName: $name\nEmail: $email\nSubject: $subject\nMessage: $message";  // Plain text fallback
+
+        $mail->send();
+        echo json_encode([
+            'success' => true,
+            'message' => 'Thank you! Your message has been sent successfully.'
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'Sorry, there was an error sending your message: ' . $mail->ErrorInfo
+        ]);
+    }
+} else {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Invalid request method.'
+    ]);
+}
 ?>
